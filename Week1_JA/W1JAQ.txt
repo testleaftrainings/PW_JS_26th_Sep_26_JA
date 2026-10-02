@@ -1,0 +1,74 @@
+Q1. How do you decide whether a variable should be declared using let or const in JavaScript?
+
+Q2. What is the difference between == and === in JavScript ?
+
+==(loose equality) => compares only the value and type conversion(corection)
+===(strict equality)=> compares both datatype and value
+
+
+Q3. How does trim() improve reliability in form input automation?
+
+const name= " playwright "
+
+
+Q4. what is the difference between replace() and replaceAll()? When would you use replaceAll() in test Automation?
+
+Q5.  In JavaScript, why strings are immutable? What does it mean when we say 'modifying' a string?
+
+let string="test"
+string=string+"leaf"
+console.log(string)
+
+Q6. In an dynamic string: 'Order ID: #12345-Confirmed'. Write a quick logic using String methods (slice, split, or substring)
+to extract just the ID 12345?
+
+Q7. We have a JavaScript function isValid(data) that checks if a field is populated.
+if (data) { return true; }
+This is causing a bug where the number 0 is treated as invalid (empty), but 0 is a valid input for our quantity field. 
+How do you fix this validation logic?"
+
+function isValid(data){
+
+    return data!==null && data!== undefined && data!==""
+}
+isValid(0)
+
+Q8. Consider a string let str = 'Testleaf'. I want to change the 'T' to 'Q'.
+How does JavaScript handle string storage in memory? Since strings are immutable, how do we actually 'modify' them in our 
+code?
+
+let cname="Testleaf"
+
+
+Q9. Take a sentence: 'Automation testing is most important'.
+   Write a loop that finds and returns the longest word in that sentence.
+
+
+Q10. You have a continuous string of server logs:
+ERROR: 404 [Time: 12:00] | INFO: Login Success [Time: 12:01] | ERROR: 500 [Time: 12:05]
+Question: I need an array containing only the timestamps where an ERROR occurred. How would you approach this?
+
+
+Home Assignments:
+-----------------
+
+a) print login and the opentaps string from the URL?
+http://leaftaps.com/opentaps/control/login
+
+
+b) count the number of vowels in a string 'cucumber'
+a,e,i,o,u
+
+c) Write a JavaScript program to find the largest of three numbers.
+
+--------------------------------------------------------------------------------------------------------
+
+
+26th SEP 2026, Week1_JA :
+
+Feedback form:
+
+https://forms.cloud.microsoft/r/Cd7SvuTvBN
+
+https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?subpage=design&FormId=eOdNgpfGe0qp5fd14FyRQ0OoIk3-aJVKpiMuJXU1QmlURDI3UFU3UE5DSVJYMFdLUlNLNkNEQThFQS4u&Token=e334d1a4cd654ad5a59cb1f498c49965
+
