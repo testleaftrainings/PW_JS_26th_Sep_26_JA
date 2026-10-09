@@ -1,0 +1,280 @@
+Q1. Explain the difference between Array map, filter and sort methods?
+
+Array sort methods are built-in JavaScript methods used to arrange, reorder, or reverse elements inside an array.
+
+Sort Method internal mechanism:
+-------------------------------
+
+let numberArray = [10, 8, 9, 7];
+
+numberArray.sort((a, b) => a - b); /
+
+//Step 1 :
+
+sort(10,8)=>10-8 // result 2 then positive we wil swap the position
+
+
+### 🟢 Step 1: Initial Array
+
+[10, 8, 9, 7]
+---
+
+### 🟢 Step 2: First Comparisons
+
+1. Compare **10 and 8**
+
+   * a = 10, b = 8 → `10 - 8 = 2` (positive)
+   * Swap → `[8, 10, 9, 7]`
+
+2. Compare **10 and 9**
+
+   * a = 10, b = 9 → `10 - 9 = 1` (positive)
+   * Swap → `[8, 9, 10, 7]`
+
+3. Compare **10 and 7**
+
+   * a = 10, b = 7 → `10 - 7 = 3` (positive)
+   * Swap → `[8, 9, 7, 10]`
+
+---
+
+### 🟢 Step 3: Next Pass
+
+1. Compare **8 and 9**
+
+   *  a = 8,b = 9 → `8 - 9 = -1` (negative)
+   * Keep order → `[8, 9, 7, 10]`
+
+2. Compare **9 and 7**
+
+   * a = 9, b = 7 → `9 - 7 = 2` (positive)
+   * Swap → `[8, 7, 9, 10]`
+
+3. Compare **9 and 10**
+
+   * a = 9, b = 10 → `9 - 10 = -1` (negative)
+   * Swap → `[8, 7, 9, 10]`
+
+---
+
+### 🟢 Step 4: Another Pass
+
+1. Compare **8 and 7**
+
+   * a = 8, b = 7 → `8 - 7 = 1` (positive)
+   * Swap → `[7, 8, 9, 10]`
+
+Now everything is in order 
+
+
+
+### Final Sorted Array
+
+[7, 8, 9, 10]
+
+
+
+* `a` and `b` are just **two numbers being compared**.
+* The compare function `(a - b)` tells JavaScript whether to swap them.
+
+
+//map->modifies every element in an array
+
+
+let number=[1,2,3]
+let result=number.map(number=>number*number)
+console.log(result) //[1,4,9]
+
+
+//filter-> the filter() method selects all the even numbers from an array and returns them in a new array.
+
+const number = [1, 2, 3, 4, 5, 6];
+let res = number.filter(number => number % 2 === 0);
+console.log(res); // [2, 4, 6]
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q2. Find the missing number in an array
+
+An array contains distinct numbers from 1 to 6, with one number missing.
+Input: [1, 2, 4, 5, 6]
+
+const arr = [1, 2, 4, 5, 6];
+const n = 6;
+
+const expected = (n * (n + 1)) / 2;
+const actual = arr.reduce((sum, num) => sum + num, 0);
+
+console.log(expected - actual);
+
+steps:
+------
+
+1. n = 6 means the numbers should be from 1 to 6.
+2. expected = (n * (n + 1)) / 2 calculates the sum of all numbers from 1 to 6.
+   6 * 7 / 2 = 21
+3. reduce() adds all the numbers present in the array.
+   1 + 2 + 4 + 5 + 6 = 18
+4. expected - actual finds the missing number.
+   21 - 18 = 3
+
+Expected sum = Sum of all numbers from 1 to 6.
+Actual sum = Sum of numbers present in the array.
+Missing number = Expected sum − Actual sum.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q3.What is the difference between a function login() {} and const login = function() {}? Specifically, how does hoisting affect them in a test script?
+
+Function Declarations are hoisted, meaning you can call the function before it is defined in your code. 
+Function Expressions are not hoisted, if you try to call them before the line of definition, you will get a ReferenceError.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q4. What is the difference between Playwright and Selenium?
+
+
+Feature	                      Playwright	                                   Selenium
+
+
+Browser Automation	   Chromium, Firefox, WebKit	                    Chrome, Firefox, Edge, Safari
+
+Auto-waiting	           Built-in auto-waiting	                    Explicit waits are commonly used
+
+Browser Contexts	   Supports isolated browser contexts	            Uses separate browser sessions
+
+Language Support	   JavaScript, TypeScript, Java, Python, .NET	    Java, Python, JavaScript, C#, and others
+
+Network Interception	   Built-in support	                            May require additional setup
+
+Test Runner	           Built-in Playwright Test for JS/TS	            TestNG, JUnit, NUnit, etc.
+
+Parallel Execution	   Built-in support	                            Supported through frameworks and Selenium Grid
+
+Mobile Testing	           Browser emulation	                            Appium for native mobile applications
+
+Best Suited For	           Modern web automation	                    Broad browser automation and enterprise projects
+
+Key Advantage	           Auto-waiting and modern automation features	    Broad language support and mature ecosystem
+
+Protocol                   Websocket communication                          A W3C standard for browser automation
+
+Communication	           Uses a persistent, two-way connection            Uses HTTP requests and responses
+
+Connection                 Connection stays open after the handshake        Commands are sent through WebDriver sessions
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q5. What mechanism does Playwright use to interact with the browser? 
+
+Playwright uses its own communication protocol to send commands to the browser, commonly through a WebSocket connection.
+
+For example, when we write page.click(), Playwright sends a command to the browser to perform the click and receives the result.
+
+- WebSocket: Enables communication between Playwright and the browser.
+- Playwright protocol: Defines how Playwright sends browser automation commands.
+- CDP (Chrome DevTools Protocol): A protocol for controlling Chromium-based browsers, which Playwright can use in certain scenarios.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Q6. what are the Browser Installation commands in PW.
+
+* Install Playwright with browsers:*
+  npx playwright install
+* This installs Chromium, Firefox, and WebKit browsers.
+
+* To install Playwright package:
+  npm install -D @playwright/test
+
+* To Execute Playwright code
+  npx playwright test filename.spec.ts
+
+npm: node package manager
+npx: node package executor
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q7.  What is the significance of test() in Playwright?
+
+test() is a function provided by the Playwright Test Runner to define and execute a test case.
+It is the core function provided by @playwright/test that allows you to write automated tests.
+
+Key Significance
+----------------
+
+1. Defines a Test Case
+
+test() is used to create a test with a name and test logic.
+
+2. Provides Built-in Fixtures
+
+test() gives access to fixtures like page, browser, context, etc
+page is automatically created by Playwright.
+
+3. Supports Test Organization
+
+test() allows grouping and structuring tests using features like:
+
+test.describe() – group related tests
+test.beforeEach() – setup before every test
+test.afterEach() – cleanup after tests
+
+4. Enables Parallel Execution
+
+Playwright can run multiple test() cases in parallel, improving test execution speed.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+Q8. Explain about async/await?
+
+`async/await` is a cleaner way to handle Promises in JavaScript.
+
+* `async` keyword defines a function that returns a Promise.
+* `await` pauses execution until the Promise is resolved or rejected.
+
+
+async function getData() {
+  const response = await fetch(url);
+  console.log(response);
+}
+
+Makes asynchronous code look and behave like synchronous code.
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q9. How does Playwright handle auto-waiting and retries?
+
+Playwright auto-waits for elements to become visible, enabled, and attached to the DOM.
+
+It also retries failed steps (like click or fill) until timeout is hit, reducing flakiness.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q10. What is the role of Browser, Context, and Page in Playwright?
+ 
+
+Browser: Actual browser engine (Chromium, Firefox, WebKit)
+
+Context: Isolated environment like an incognito session
+
+Page: A single tab within a context
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q11. What is the difference between waitForTimeout() and auto-waiting?
+
+
+Feature	                       waitForTimeout()	                                Auto-waiting
+
+
+Meaning	             Waits for a fixed amount of time	                    Waits until the required condition is met
+
+Working	             Pauses execution for the specified duration	    Checks whether the element is ready for the action
+
+Example	             await page.waitForTimeout(3000);	                    await page.getByRole('button', { name: 'Login' }).click();
+
+Time	             Always waits for the specified duration	            Continues as soon as the required condition is satisfied
+
+Reliability	     Can make tests slow or flaky	                    Improves test reliability
+
+Best practice	     Avoid using it for synchronization	                    Prefer auto-waiting and web-first assertions
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,57 @@
+Q1. Explain the difference between Array map, filter and sort methods?
+
+sorting- JS default sorting in ascending order based on ASCII value
+arrow functions=> sort in ascending/descending order
+
+Q2. Find the missing number in an array
+An array contains distinct numbers from 1 to 6, with one number missing.
+Input: [1, 2, 4, 5, 6]
+
+missing number 3
+
+Q3. What is the difference between a function login() {} and const login = function() {}? Specifically
+, how does hoisting affect them in a test script?
+
+//named function/function declaration
+function login() 
+{} 
+
+//fully hoisted
+
+
+//function expression/anonymous function
+const login = function() 
+{}
+
+//with hoisting, we find reference error: cannot access the value before initialization
+
+Q4. What is the difference between Playwright and Selenium?
+
+Q5. What mechanism does Playwright use to interact with the browser? 
+
+CDP protocol(chrome devtools protocol)
+
+Q6. what are the Browser Installation commands in PW.
+
+//pw installation
+npm init playwright@latest
+
+//execute PW code
+npx playwright test filename.spec.test
+
+//to install playwright package
+npm install-D playwright/test
+
+Q7.  What is the significance of test() in Playwright?
+
+Q8. Explain about async/await?
+
+Q9. How does Playwright handle auto-waiting and retries?
+
+Q10. What is the role of Browser, Context, and Page in Playwright?
+
+Q11. What is the difference between waitForTimeout() and auto-waiting?
+
+
+https://forms.cloud.microsoft/r/iR3LYmkB3F
+
