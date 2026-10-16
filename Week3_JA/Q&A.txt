@@ -1,0 +1,486 @@
+Q1: When do you get a Strict Mode Violation in Playwright? What are the causes and how do you fix it?
+
+A strict mode violation occurs when a locator matches more than one element, but Playwright expects exactly one 
+element for an action like click(), fill(), etc.
+
+Strict mode violation occurs when a locator matches multiple elements. It is caused by non-unique or generic locators
+,and we fix it by refining the locator using unique attributes, Playwright locators, or narrowing it with nth() method
+
+Use Semantic Locators: Use getByRole with the name option. This filters out buttons that do not have the specific 
+accessible text "Submit".
+
+Ex: In LeafTaps
+---------------
+
+import {test} from "@playwright/test"
+test('launch browser',async({page})=>{
+
+await page.goto('http://leaftaps.com/opentaps/control/main')
+await page.locator('input').fill('demosalesmanager');
+await page.locator('input').fill('crmsfa')
+})
+
+Error on execution
+------------------
+
+Error: locator.fill: Error: strict mode violation: locator('input') resolved to 3 elements:
+
+1st input tag for username
+2nd input tag for password
+3rd input tag for login
+
+Causes
+------
+
+1) Using generic locators:
+page.locator('input')
+
+2) Repeated elements in UI
+
+3) Dynamic lists / tables:
+Same structure repeated (rows, buttons)
+
+4) Non-unique attributes:
+Many elements share same class
+
+how to fix:
+-----------
+Identify how many elements are matched
+Make the locators unique
+Use better attribute
+Use Playwright locator(Accessibility-This works based on the label visible to the user, not HTML structure)
+keep nth() as the last option. If multiple elements are expected, narrow it down.
+Use parent-child relation (advanced locators)
+
+--------------------------------------------------------------------------------------------------------------------
+
+Q2. How do you prioritize locator strategies in Playwright? What is your order of preference between Playwright 
+locators, CSS selectors, and XPath ?
+
+CSS Selector:
+-------------
+
+CSS selectors are natively supported by web browsers, so when you use a CSS selector, the browser can directly 
+locate the element using its own built-in engine
+
+1) Used to find elements based on HTML tags, classes, IDs, or attributes.
+
+2) Syntax:
+page.locator('css selector')
+
+3) Examples:
+
+await page.locator('#username').fill('Gauthami');                      // by ID
+await page.locator('.login-button').click();                           // by Class
+await page.locator('input[name="email"]').fill('test@test.com');       // by attribute
+await page.locator('button').click();                                  // by tag name
+
+4) Easy to use and fastest locator type.
+
+
+✅  Xpath(Basic and Advanced)
+-----------------------------
+
+1) XPath helps you find elements based on their position or relationship in the HTML tree.
+It can move up, down, or across elements.
+
+2) Syntax:
+page.locator('//tagname[@attribute="value"]')
+
+3) Basic Xpath examples:
+
+await page.locator('//input[@id="username"]').fill('Gauthami');  
+await page.locator('//button[text()="Login"]').click();
+
+4) Advanced Xpath examples: 
+await page.locator('//div[@class="form"]//input[@type="text"]'); // nested element
+await page.locator('(//a)[3]').click(); // click the 3rd link
+await page.locator('//label[contains(text(),"Email")]/following::input[1]').fill('test@test.com');
+
+5) Very flexible, works when CSS is not enough.
+
+
+✅ Playwright locators
+----------------------
+
+Playwright’s role-based and test-ID locators are faster because they’re optimized, more specific, and require less 
+DOM traversal than CSS or XPath.
+
+1) Playwright provides special locator methods that are easier and more human-friendly.
+These are smart and automatically wait for the element to be ready.
+
+2) Syntax:
+page.getByRole()
+page.getByText()
+page.getByLabel()
+page.getByPlaceholder()
+page.getByAltText()
+page.getByTitle()
+page.getByTestId()
+
+3) Examples
+
+await page.getByRole('button', { name: 'Login' }).click();
+await page.getByText('Submit').click();
+await page.getByLabel('Email').fill('test@test.com');
+await page.getByPlaceholder('Enter password').fill('Secret123');
+await page.getByAltText('Company Logo').click();
+
+4) Best for modern testing — readable, reliable, and automatically waits for elements.
+
+Selector priority in Playwright (best practice from stability + maintainability):
+
+
+Locators priority:
+------------------
+Playwright locators > CSS > XPath
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q3. What are dropdowns and how do we handle it in playwright?
+
+
+A dropdown (or select menu) is a UI element that allows the user to choose one or more options from a list.
+There are two main types of dropdowns in web applications:
+
+1. Standard / Native Dropdown
+
+A Standard (or Native) Dropdown is a dropdown list created using the HTML <select> tag and its child <option> elements.
+It is called native because it’s a built-in browser control — handled directly by the browser’s rendering engine, 
+not by JavaScript or CSS styling.
+
+Ex:<select id="country">
+  <option value="IN">India</option>
+  <option value="US">United States</option>
+  <option value="UK">United Kingdom</option>
+</select>
+
+how to handle using build-in methods
+------------------------------------
+
+1) await page.locator('#country').selectOption('IN');
+or
+2) await page.selectOption('#country', 'IN');
+
+Key Features:
+------------
+
+Uses native HTML elements (<select>, <option>).
+Fully supported by browsers (no JavaScript required).
+Easy to automate with Playwright’s selectOption().
+Supports value, label, and index attributes.
+
+1) By value attribute:
+-------------------
+The value is the hidden attribute inside the <option> tag.
+Playwright uses this when you provide a string.
+
+await page.locator('#country').selectOption('US');
+
+this seletcs:
+<option value="US">United States</option>
+
+2)By label (visible text)
+-------------------------
+
+The label refers to the display text that users see in the dropdown.
+
+await page.locator('#country').selectOption({ label: 'United Kingdom' });
+
+this selects:
+<option value="UK">United Kingdom</option>
+
+3) By index (position in the list)
+----------------------------------
+
+The index represents the zero-based position of the option.
+
+await page.locator('#country').selectOption({ index: 0 });
+
+this selects:
+<option value="IN">India</option>
+
+priority among the 3 options
+----------------------------
+
+Ex:
+<button data-testid="loginBtn">Sign In</button>
+
+Even if text changes from Sign In to Login,
+the locator still works.
+Value comes first because it is stable, unique, and reliable.
+
+Priority1: Value
+Priority2: label/visible text
+Priority3: index
+
+why value is given first priority
+---------------------------------
+
+In a standard HTML form, the <option>’s value is what actually gets sent to the server when a form is submitted — not the visible text.
+
+If a user selects “United States”,
+the browser actually sends → country=US
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q4. How do you handle a dropdown that doesn't use the standard <select> tag but is built with a <div> or <ul> 
+(custom dropdown)?
+
+Custom / Dynamic Dropdown :
+---------------------------
+
+Handling Custom Dropdowns (Built with <div> or <ul>)
+
+Example:
+<div class="dropdown">
+  <div class="option">India</div>
+  <div class="option">USA</div>
+  <div class="option">UK</div>
+</div>
+
+//open the dropdown
+await page.locator('.dropdown').click();
+
+//select the desired option
+await page.locator('.option', { hasText: 'USA' }).click();
+
+div = Generic box/container
+ul = Unordered list container
+li = List item inside a ul
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q5. How would you select a dropdown option that becomes visible only after hovering over another element?
+
+Use `.hover()` first, then click the visible option.
+
+ex: Myntra
+import {test} from "@playwright/test"
+test(`hover in dropdown`,async ({page})=> {
+    await page.goto("https://www.myntra.com")
+    await page.hover('a[data-group="men"]');
+    await page.click('//a[text()="Sweaters"]')
+})
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q6. Imagine there are 2 functions in playwright to enter a value in textbox, one is type and another one is fill. When to use what?
+
+fill()
+------
+
+Replaces the entire content of an input or textarea.
+Clears the existing value automatically before typing.
+Does not simulate actual typing keystrokes — it just sets the value in the DOM.
+Faster because it doesn’t trigger individual key events for each character (unless you need them).
+
+Example:
+--------
+
+await page.locator('#username').fill('vidya123');
+If the field already had text "guest", after fill() it becomes "vidya123".
+
+Use Case:
+---------
+
+Quick replacement of input fields.
+
+type()
+------
+
+Simulates real typing, character by character.
+Respects keyboard events, like keydown, keypress, and keyup.
+Can add delay between keystrokes to mimic user typing.
+Does not clear existing text automatically — appends unless you manually clear first.
+
+Example:
+--------
+
+await page.locator('#username').type('vidya123', { delay: 100 });
+
+If the field had "guest", after type() it becomes "guestvidya123" unless you clear it first:
+
+await page.locator('#username').fill(''); // clear
+await page.locator('#username').type('vidya123', { delay: 100 });
+
+Use Case:
+---------
+
+When testing autocomplete, keyboard shortcuts, or scenarios where keypress events matter.
+
+| Feature               | `fill()`                | `type()`                           |
+| --------------------- | ----------------------- | ---------------------------------- |
+| Clears existing text? | Yes                     | No                                 |
+| Simulates keystrokes? | No                      | Yes                                |
+| Speed                 | Faster                  | Slower (per character)             |
+| Use Case              | Quick input replacement | Autocomplete, hotkeys, real typing |
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q7. If a dropdown option is hidden behind a scrollable container. How will you select it?
+
+A dropdown only loads the next 10 items when you scroll to the bottom. How do you select the 50th item?
+
+Click to open the dropdown.
+Use a while loop to check if the target item is visible.
+If not, use page.keyboard.press('PageDown') or locator.scrollIntoViewIfNeeded() on the last visible item.
+
+test('Telerik dropdown', async({page})=>{
+
+     await page.goto('https://www.telerik.com/contact')
+     await page.selectOption("#Dropdown-1",{index:2})
+     let dd=page.locator("#Country-1")
+    await dd.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(2000)
+    await dd.selectOption({label:"American Samoa"})
+
+    
+    })
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q8. Your dropdown options load only after you type 3 characters in an input field. How do you automate this?
+
+await page.locator.pressSquentially("abc") with a a delay to type the characters one by one, or use page.fill("abc") to type the entire string at once.
+
+// Type "abc" into the input field to trigger the dropdown options to load
+
+test('drop down', async({page})=>{
+
+     await page.goto('https://www.redbus.in/')
+     await page.locator('//label[text()="From"]').pressSequentially("che",{delay:500})
+
+     await page.waitForTimeout(2000)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q9. How do you select multiple options in a standard <select multiple> element?
+
+Pass an array of values to the selectOption method, like this: 
+
+ test.only('multipe drop down', async({page})=>{
+
+     await page.goto('https://testautomationpractice.blogspot.com/')
+
+     let title=await page.title()
+     console.log(title);
+     expect(title).toBe('Automation Testing Practice')  //non-retry
+
+     
+     await expect(page).toHaveTitle('Automation Testing Practice')
+
+     let multidd=page.locator('#colors')
+     await page.keyboard.press("PageDown")
+     await multidd.selectOption([{label:"Blue"},{value:"yellow"},{index:2}])
+     
+     //await page.selectOption('#colors',[{label:"Blue"},{value:"yellow"},{index:2}])
+
+     await page.waitForTimeout(2000)
+
+     
+      })
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q10. How do you use assertions in Playwright to validate UI behavior?
+
+Assertions in Playwright are the checks/validations used to confirm that your application is behaving correctly.
+
+Playwright mainly supports four logical categories of assertions, they verify
+
+An element exists
+A value is correct
+A page has navigated properly
+A property or attribute matches expectation
+If an assertion fails, Playwright throws an error and fails the test.
+
+
+1. Generic Assertions:
+----------------------
+
+Generic assertions are Non retry assertions, used to verify the text, URL and values, work on page-level (NOT on elements).
+
+✅ Generic Assertions include
+
+✔ toHaveURL()
+✔ toHaveTitle()
+
+These two are generic assertions because they are applied on page:
+
+await expect(page).toHaveURL('/dashboard');
+await expect(page).toHaveTitle('Home');
+
+
+2. Locator assertions:
+---------------------
+Locator assertions are retry assertions , they work only with locators() because they require a specific element locator.
+Playwright uses auto-wait for assertions, it waits until the condition becomes true (default timeout 5 seconds).
+
+
+✅ Locator Assertions include
+
+toBeVisible()	Checks element visibility
+toHaveText()	Checks element text
+toHaveValue()	Checks input value
+toHaveAttribute()Checks element attributes
+toHaveCount()	Checks number of elements
+toBeChecked()	Checks checkbox/radio
+
+
+3️. Hard Assertions
+------------------
+
+Fail the test immediately when the assertion fails
+By default, it is hard assertion.
+
+Example:
+await expect(page.locator('#login')).toBeVisible();
+
+4. Soft Assertions
+------------------
+
+Even if the assertion fails, the test continues.
+Failures are shown at the end.
+
+Example:
+await expect.soft(page.locator('#title')).toHaveText('Welcome');
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Q11. Write a reusable function that takes a Playwright 'locator' as an input and returns 'true' if the element is both visible and enabled, otherwise returns 
+'false'. 
+
+
+import { test, Locator } from '@playwright/test';
+
+async function isReady(locator: Locator): Promise<boolean> {
+
+    return await locator.isVisible() &&
+           await locator.isEnabled();
+}
+
+test('Login Test', async ({ page }) => {
+
+    await page.goto('http://leaftaps.com/opentaps/control/main');
+
+    const username = page.locator('#username');
+
+    if (await isReady(username)) {
+
+        await username.fill('democsr');
+    }
+
+    const password = page.locator('#password');
+
+    if (await isReady(password)) {
+
+        await password.fill('crmsfa');
+    }
+
+    const loginButton = page.locator('.decorativeSubmit');
+
+    if (await isReady(loginButton)) {
+
+        await loginButton.click();
+    }
+
+});

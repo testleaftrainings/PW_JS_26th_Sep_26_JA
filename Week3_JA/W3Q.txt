@@ -1,0 +1,91 @@
+Q1: When do you get a Strict Mode Violation in Playwright? What are the causes and how do you 
+fix it?
+
+
+Q2. How do you prioritize locator strategies in Playwright? What is your order of preference between
+ Playwright locators, CSS selectors, and XPath ?
+
+ playwright locators->CSS->XPath
+
+ getByTestID()->
+ getByRole()->
+ getByText()->
+ getByAltText()->
+ getByPlaceholder()->
+ getByTitl()->
+ getByLabel()->
+
+
+
+Q3. What are dropdowns and how do we handle it in playwright?
+
+Ex:<select id="country">
+  <option value="IN">India</option>
+  <option value="US">United States</option>
+  <option value="UK">United Kingdom</option>
+</select>
+
+
+3 ways to handle select dropdown
+
+1. by value
+
+await page
+
+2. by getByLabel
+
+3. by index
+
+
+Q4. How do you handle a dropdown that doesn't use the standard <select> tag but is built with a 
+<div> or <ul> (custom dropdown)?
+
+<div class="dropdown">
+  <div class="option">India</div>
+  <div class="option">USA</div>
+  <div class="option">UK</div>
+</div>
+
+
+//select the dropdown first
+await page.locator('.dropdown').click()
+
+await page.locator('.option',{hasText:'India'}).click()
+
+
+Q6. Imagine there are 2 functions in playwright to enter a value in textbox, one is type and another
+ one is fill. When to use what?
+
+
+Q7. If a dropdown option is hidden behind a scrollable container. How will you select it?
+
+
+Q8. Your dropdown options load only after you type 3 characters in an input field. How do you automate 
+this?
+
+Q9. How do you select multiple options in a standard <select multiple> element?
+
+Q10. How do you use assertions in Playwright to validate UI behavior?
+
+expect()
+
+//Retry /locator based assertions
+
+page assertions
+locator assertions
+
+await expect(page).toHaveTitle()
+await expect(page.locator('')).toBeVisible({timeout:8000})
+
+
+//generic/Non-retry assertion
+
+comparing lhs and rhs
+default-5s
+
+
+Q11. Write a reusable function that takes a Playwright 'locator' as an input and returns 'true' if the element is both
+ visible and enabled, otherwise returns 'false'. 
+
+
+https://forms.cloud.microsoft/r/YTJsU5HhVd
