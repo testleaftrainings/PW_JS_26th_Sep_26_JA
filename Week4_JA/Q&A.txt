@@ -1,0 +1,247 @@
+Q1. Test A runs as Admin, Test B as a standard user. Both reuse storageState to skip login. How do you ensure isolation?
+
+A: Create separate browser contexts for each user state:
+
+const adminContext = await browser.newContext({ storageState: 'adminState.json' });
+const userContext = await browser.newContext({ storageState: 'userState.json' });
+
+Avoid sharing the same storage file between parallel tests to prevent race conditions.
+
+If parallel tests modify the same storage file at the same time, they may interfere with each other
+and produce unexpected results. Therefore, use separate storage files when the state needs to be modified.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Q2. What is the difference between storageState and Persistent Context?
+
+A:storageState saves selected authentication data in a JSON file and loads it into a new browser context. 
+
+Persistent Context stores browser data in a profile directory and reuses that profile across browser launches.
+
+I prefer storageState for scalable CI/CD automation because it supports isolated browser contexts 
+and parallel execution. I use Persistent Context when I need an interactive browser profile, manual
+login, or browser preferences.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Q3: You're testing a legacy application that has three levels of nested iframes. 
+The innermost iframe contains the elements you need to interact with, but its 
+id attribute changes on every page reload (e.g., frame_4829, frame_9301, etc.). 
+The outer iframe IDs are static. How would you locate and work with that dynamic 
+inner iframe in Playwright? Please explain your approach and write the code to 
+click a button inside that dynamic iframe.?
+
+A: • Never rely on dynamic IDs
+   • Use stable attributes + frameLocator()
+   • Playwright auto-waits for frames
+
+   Example:
+   const outer = page.frameLocator('iframe[id="transaction-container"]');
+   const inner = outer.frameLocator('iframe');
+   await inner.getByRole('button', { name: 'Submit Transaction' }).click();
+
+   Senior Insight: Playwright eliminates need for manual frame switching unlike
+   Selenium.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+Q4: In one of your test suites, you're interacting with an <iframe> (frame) that 
+sometimes takes 5–10 seconds to load its content. Your test frequently fails 
+because Playwright tries to interact with elements inside the frame before it's
+fully loaded. How would you handle this situation in Playwright to make the test 
+reliable without using arbitrary wait(5000) delays? 
+
+A: • frameLocator() automatically waits
+   • Avoid explicit waits like waitForTimeout()
+
+   If needed:
+   await expect(inner.getByRole('button')).toBeVisible();
+
+   Approach 1: Use frameLocator() - Best Practice
+   const frame = page.frameLocator('iframe[data-test="payment-frame"]');
+   await frame.getByRole('button', { name: 'Pay Now' }).click();
+
+   Approach 2: Explicit Assertion Before Action
+   const button = frame.getByRole('button', { name: 'Pay Now' });
+   await expect(button).toBeVisible();
+   await button.click();
+
+   Approach 3: Wait for Frame to be Attached
+   await expect(page.locator('iframe[data-test="payment-frame"]')).toBeAttached();
+
+   Note:
+
+   What NOT to do:
+   await page.waitForTimeout(5000); // Bad practice - flaky and slow
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q5. What is the difference between `page.frame()` and `frameLocator()`?
+
+A: 
+page.frame()
+------------
+Returns a Frame object, representing a specific <iframe> inside the page.
+
+Definition:
+const frame = page.frame({ name: 'iframe-name' });
+
+
+Parameters:
+name: Name of the iframe
+url: URL of the iframe (can use regex)
+Or any other frame identification
+
+Usage: You can then call methods like fill(), click(), locator() on the frame object.
+
+Example:
+
+const frame = page.frame({ name: 'myFrame' });
+if (frame) {
+  await frame.fill('#username', 'JohnDoe');
+  await frame.click('button[type="submit"]');
+}
+
+page.frameLocator()
+-------------------
+Returns a FrameLocator object, which allows locator-based interaction inside a frame.
+
+Definition:
+const frameLocator = page.frameLocator('#iframe-selector');
+
+You can chain locators to interact with elements inside the iframe. Works well for nested frames.
+
+Example:
+
+const frameLocator = page.frameLocator('#myFrame');
+await frameLocator.locator('#username').fill('JohnDoe');
+await frameLocator.locator('button[type="submit"]').click();
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q6. what is the difference between page.on and page.once?
+
+A: 
+Page.on:
+--------
+page.on('dialog', callback)
+The callback will run every time a dialog appears, whether it’s a simple alert, confirmation, or prompt.
+So if your page triggers 3 alerts one after another, the callback executes 3 times, once for each alert.
+
+Syntax: 
+-------
+page.on('dialog', async dialog => {
+console.log('Dialog type:', dialog.type()); // alert, confirm, or prompt
+await dialog.dismiss(); // dismiss all dialogs
+});
+
+
+page.once:
+----------
+
+page.once('dialog', callback)
+The callback will run only for the first dialog that appears, regardless of type.
+After handling that first alert, it automatically stops listening.
+
+Syntax:
+-------
+page.once('dialog', async dialog => {
+    console.log('First dialog type:', dialog.type());
+    await dialog.accept(); // only handles the first dialog
+});
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Q7. What happens if you click a button that triggers an alert without handling it?
+
+A: 
+If no dialog handler is registered, Playwright's default behavior is to dismiss JavaScript dialogs. 
+This can prevent the expected application flow from completing.
+
+For example, if a confirmation dialog appears before deleting a record, I explicitly accept or 
+dismiss it based on the scenario instead of relying on default behavior.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q8. Will this code correctly handle dialogs?
+
+A:
+await page.getByRole('button').click();
+page.on('dialog', async dialog => {
+  console.log(dialog.message());
+  await dialog.accept('My Input Text');
+});
+
+No — the listener must be registered before the click:
+
+page.on('dialog', async dialog => {
+  console.log(dialog.message());
+  await dialog.accept('My Input Text');
+});
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q9. What is the difference between any and unknown?
+
+A: 
+Both types can hold values of different types, but unknown is safer.
+- any disables most type checking for that value.
+- unknown requires me to validate or narrow the type before using type-specific operations.
+
+let responseData: any = 'Success';
+console.log(responseData.toUpperCase());
+
+let apiData: unknown = 'Success';
+
+if (typeof apiData === 'string') {
+  console.log(apiData.toUpperCase());
+
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q10. What is the difference between type assertion and type conversion?
+
+A:
+
+Type assertion changes how TypeScript interprets a value at compile time. Type conversion actually
+transforms a value at runtime.
+
+const value: unknown = '100';
+
+const assertedValue = value as string; // Assertion
+const convertedValue = Number(value);  // Conversion
+
+
+assertedValue remains a string, while convertedValue is the number 100.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment:
+-----------
+
+How would you write a Playwright script to print all the app names listed in Google’s App Launcher (the 9-dot grid)?
+
+
+A:
+
+import { test } from "@playwright/test"
+
+test("Google Apps Launcher", async ({ page }) => {
+
+// Launch Google
+await page.goto("https://www.google.com")
+
+// Click Google Apps (9 dots icon)
+await page.locator("a[aria-label='Google apps']").click()
+
+// Wait for iframe and switch
+const frame = await page.frameLocator("iframe[role='presentation']")
+
+// Locate all app names inside launcher
+const apps = frame.locator("//span[@class='Rq5Gcb']") 
+
+// Count apps
+const count = await apps.count()
+console.log("Total Apps: " + count)
+
+// Loop and print each app name
+for (let i = 0; i < count; i++) {
+    const appName = await apps.nth(i).innerText()
+    console.log(appName)
+}
+})

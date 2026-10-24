@@ -1,0 +1,107 @@
+Q1. Test A runs as Admin, Test B as a standard user. Both reuse storageState to skip login. 
+How do you ensure isolation?
+
+Q2. What is the difference between storageState and Persistent Context?
+
+Q3: You're testing a legacy application that has three levels of nested iframes. 
+The innermost iframe contains the elements you need to interact with, but its 
+id attribute changes on every page reload (e.g., frame_4829, frame_9301, etc.). 
+The outer iframe IDs are static. How would you locate and work with that dynamic 
+inner iframe in Playwright? Please explain your approach and write the code to 
+click a button inside that dynamic iframe.?
+
+const outframe=page.framelocator('')
+const inframe=outframe/framelocator('')
+await inframe.locator.click()
+
+Q4: In one of your test suites, you're interacting with an <iframe> (frame) that 
+sometimes takes 5–10 seconds to load its content. Your test frequently fails 
+because Playwright tries to interact with elements inside the frame before it's
+fully loaded. How would you handle this situation in Playwright to make the test 
+reliable without using arbitrary wait(5000) delays? 
+
+
+1. use assertions
+2. use frameLocator()
+3. check the (frameLocator).toBeAttached(assertions)
+
+not to use hard wait, because it slows down the test and becomes flaky
+
+
+Q5. What is the difference between `page.frame()` and `frameLocator()`?
+
+frameLocator()-> directly locate the elements in the frameLocator
+auto waiting
+we cannot diractly handle the nested frame(outerframe-> innerframe-> click)
+
+page.frame()-> no auto wait, directly can handle nested frame(innerframe->click)
+optional chaining (?.)
+checks the frame->if present handle the frame, if not present it will throw error instead it just returns null or undefined
+
+Q6. what is the difference between page.on and page.once?
+
+page.on-> eventlistener-handles all the alert inthe page.
+
+page.on('dialog',async(alert)=>{
+
+ 
+})
+
+page.once-> handles the 1st alert
+
+Q7. What happens if you click a button that triggers an alert without handling it?
+
+
+Q8. Will this code correctly handle dialogs?what is the expected result and how do you fix it?
+
+
+page.on('dialog', async dialog => {
+  console.log(dialog.message());
+  await dialog.accept('My Input Text')
+})
+
+Answer:
+
+page.on('dialog', async dialog => {
+  console.log(dialog.message());
+  await dialog.accept('My Input Text')
+})
+  await page.getByRole('button').click()
+
+
+Q9. What is the difference between any and unknown?
+
+any=accepts all kind of the datatype
+we 
+
+let apiresponse:any="ok"
+apiresponse.toUpperCase()
+
+error occurs in runtime
+
+
+unknown=accepts all kind of the datatype
+we need to check  the type in unknown before performing any operation
+if(typeof apiresponse==="string"){
+apiresponse.toUpperCase()
+}
+error occurs in compile time
+
+
+Q10. What is the difference between type assertion and type conversion?
+
+type assertion-
+
+type conversion-
+
+Assignment:
+-----------
+
+How would you write a Playwright script to print all the app names listed in Google’s App 
+Launcher (the 9-dot grid)?
+
+Week4 JA:
+---------
+
+https://forms.cloud.microsoft/r/k5UEcuMYpR
+
