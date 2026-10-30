@@ -1,0 +1,160 @@
+Q1.You need to create user details containing id, name, and role. You will have multiple users 
+with the same structure. How would you design this in TypeScript without repeating the data structure?
+
+type User={
+
+    id:number
+    name:string
+    role:string
+}
+
+let user1:User={
+id:101
+name:saranya
+role:QA
+}
+
+let user2:User={
+id:102
+name:Naveen
+role:developer
+}
+
+
+Q2.You are designing test data for an automation framework. An application has Admin and Tester 
+users. Sometimes a test accepts either an Admin or a Tester, while another test requires a user to
+ have both Admin and Tester details. How would you model these two scenarios in TypeScript? Explain 
+ the difference between union and intersection and when you would prefer each.
+
+//type union
+Admin | Tester
+
+type Admin={
+
+username:string
+accessLevel:number
+}
+
+type Tester={
+    testTool:string
+
+}
+
+//type intersection
+Admin & Tester
+
+type Adtest=Admin & Tester
+
+let useraccess:Adtest={
+username:string
+accessLevel:number
+ testTool:string
+
+}
+
+
+Q3. You are automating an API and the response body is dynamic. You are not sure whether the API 
+will return a string, number, or object. A developer has declared the response as any. What problems
+ can this cause? Would you use any or unknown? Explain with an example.
+
+
+ Q4. You are developing a TypeScript automation framework with a common environment validation utility.
+The utility should allow execution to continue when the environment is valid.
+If an invalid environment is provided, it should immediately throw an error and prevent further execution.
+How would you design this function in TypeScript? What return type would be appropriate, and why?
+
+function stopexe(message:string):never{
+    throw new Error(message)
+}
+
+function validateenv(env:string){
+
+    const validenv=["dev","qa","prod"]
+
+    if(validenv.includes(env)){
+        console.log("valid env")
+    }else{
+        stopexe("invalid env")
+    }
+}
+
+validateenv("qa")
+
+
+Q5.You are developing a Playwright utility function to search for a customer. The customer name is 
+mandatory, but the customer city is optional because sometimes the search needs to be performed only
+by name.
+How would you design this function so that the city parameter is optional? What should happen when 
+the city is not provided?
+
+optional parameter
+
+function searchCustomer(name:string,city?:string){
+
+if(city){
+    console.log("city is :",city)
+}else{
+console.log("name is :",name)
+}
+
+
+}
+
+searchCustomer("gauthami")
+
+Q6:You're automating a flow where clicking a 'Print Preview' button opens a new browser 
+tab. You need to verify that the new tab contains a specific text ('Invoice #1234') and 
+then close that tab to return to the original tab for the next step. How would you handle 
+this in Playwright? Please write the code and mention any edge cases or common pitfalls.
+
+1. sequential
+2. concurrent-preferred
+
+sequential:single window handling.
+
+concurrent: Promise.all([listener,click])
+
+
+Q7: You're testing a multi-step workflow that spans three different pages (not tabs — 
+actual browser windows/pages). Step 1: Login on page A. Step 2: Click a link that opens 
+page B in a new window. Step 3: On page B, click a button that opens page C. Then you need 
+to go back to page A to verify a toast notification appeared. How would you manage navigation 
+between these three pages in Playwright? Show code for switching, verifying, and closing pages. 
+Also explain how this differs from handling multiple tabs.
+
+Q8: You're testing a file upload feature where the <input type="file"> element is hidden 
+from the UI. The developers used a custom button that triggers the file dialog, but the 
+actual file input has display: none or visibility: hidden. You cannot interact with the 
+visible button using standard Playwright methods because it's a complex React component. 
+How would you upload a file in this scenario? Show at least two different approaches, and 
+explain which one is more reliable and why.
+
+
+Q9: You're testing a login flow with 50 different user accounts (admin, guest,
+viewer, editor, etc.). Writing 50 separate tests or hardcoding credentials
+inside each test is not maintainable. How would data parameterization help here?
+Explain the benefits and show a practical example using Playwright's test.each()
+or a data file.
+
+
+const users=[{role:'admin',usn:vinod,pwd:welcome},
+
+
+]
+
+
+for(let userrole of users ){
+test(`${userrole.role}`,async({page})=>{
+
+
+})
+
+}
+
+
+
+Q10: Your team is deciding between JSON and CSV for storing test data. You have
+nested data structures (like an order with multiple line items) and also flat
+data (like 50 login credentials). Compare JSON vs CSV for: readability,
+maintainability, support for complex data types, and ease of use in Playwright.
+Which one would you choose for each scenario and why?

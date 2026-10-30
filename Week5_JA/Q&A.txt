@@ -1,0 +1,394 @@
+
+Q1.You need to create user details containing id, name, and role. You will have multiple users 
+with the same structure. How would you design this in TypeScript without repeating the data structure?
+
+
+First, create a type alias to define the structure. Then create objects using that type.
+
+type User = {
+    id: number;
+    name: string;
+    role: string;
+};
+
+let user1: User = {
+    id: 101,
+    name: "Sindhu",
+    role: "SDET"
+};
+
+let user2: User = {
+    id: 102,
+    name: "John",
+    role: "Tester"
+};
+
+console.log(user1.name);
+console.log(user2.role);
+
+
+type User → defines the structure.
+user1 and user2 → are objects created using that structure.
+This avoids defining id, name, and role repeatedly.
+If a required property is missing or has the wrong datatype, TypeScript gives an error.
+
+
+Use case: Useful for storing multiple users, test data, API request data, or configuration data with the same 
+structure.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q2. You are designing test data for an automation framework. An application has Admin and Tester 
+users. Sometimes a test accepts either an Admin or a Tester, while another test requires a user to
+ have both Admin and Tester details. How would you model these two scenarios in TypeScript? Explain 
+ the difference between union and intersection and when you would prefer each.
+
+
+1. Union (|) — Either one
+
+Use union when the value can be one type OR another type.
+
+type Admin = {
+    username: string;
+    accessLevel: number;
+};
+
+type Tester = {
+    username: string;
+    testTool: string;
+};
+
+type User = Admin | Tester;
+
+Now a user can be either:
+
+let user1: User = {
+    username: "admin",
+    accessLevel: 5
+};
+
+let user2: User = {
+    username: "tester",
+    testTool: "Playwright"
+};
+
+
+Automation use case:
+
+Suppose a utility can run tests with either an Admin or Tester account:
+
+function login(user: User) {
+    console.log(`Login as ${user.username}`);
+}
+
+Prefer Union when:
+
+The requirement is "this OR that".
+
+
+2. Intersection (&) — Both together
+
+Use intersection when the object must contain properties from both types.
+
+type Admin = {
+    username: string;
+    accessLevel: number;
+};
+
+type Tester = {
+    username: string;
+    testTool: string;
+};
+
+type AdminTester = Admin & Tester;
+
+Now the object must contain both:
+
+let user: AdminTester = {
+    username: "sindhu",
+    accessLevel: 5,
+    testTool: "Playwright"
+};
+
+Automation use case
+
+Suppose a special test account needs:
+
+Admin permissions
++
+Tester capabilities
+
+Then intersection is appropriate because the test data must satisfy both structures.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q3. You are automating an API and the response body is dynamic. You are not sure whether the API 
+will return a string, number, or object. A developer has declared the response as any. What problems
+ can this cause? Would you use any or unknown? Explain with an example.
+
+I would prefer unknown when I don't know the type of the value.
+
+The key difference is:
+
+any     → TypeScript allows me to do anything with the value.
+unknown → TypeScript forces me to verify the type before using it.
+
+Example with any
+let response: any = "Success";
+
+console.log(response.toUpperCase());
+
+response.login();       // No compile-time error
+response.user.name;     // No compile-time error
+
+The problem is that TypeScript does not protect us.
+The code may compile but fail at runtime.
+
+Example with unknown
+let response: unknown = "Success";
+
+If I try:
+console.log(response.toUpperCase());
+
+TypeScript gives an error because it doesn't know whether response is a string.
+
+So I must first check the type:
+
+if (typeof response === "string") {
+    console.log(response.toUpperCase());
+}
+
+Now TypeScript knows that response is a string.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q4. You are developing a TypeScript automation framework with a common environment validation utility.
+The utility should allow execution to continue when the environment is valid.
+If an invalid environment is provided, it should immediately throw an error and prevent further execution.
+How would you design this function in TypeScript? What return type would be appropriate, and why?
+
+
+function stopExecution(message: string): never {
+    throw new Error(message);
+}
+
+function validateEnvironment(environment: string) {
+
+    const validEnvironments = ["DEV", "QA", "PROD"];
+
+    if (validEnvironments.includes(environment)) {
+        console.log(`Valid environment: ${environment}`);
+        console.log("Continue test execution");
+    } else {
+        stopExecution(`Invalid environment: ${environment}`);
+    }
+}
+
+validateEnvironment("QA");
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q5.You are developing a Playwright utility function to search for a customer. The customer name is 
+mandatory, but the customer city is optional because sometimes the search needs to be performed only
+by name.
+How would you design this function so that the city parameter is optional? What should happen when 
+the city is not provided?
+
+function searchCustomer(name: string, city?: string) {
+
+    if (city) {
+        console.log(`Searching for ${name} in ${city}`);
+    } else {
+        console.log(`Searching for ${name}`);
+    }
+}
+
+searchCustomer("John");
+searchCustomer("John", "Chennai");
+
+
+Output:
+Searching for John
+Searching for John in Chennai
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q6:You're automating a flow where clicking a 'Print Preview' button opens a new browser 
+tab. You need to verify that the new tab contains a specific text ('Invoice #1234') and 
+then close that tab to return to the original tab for the next step. How would you handle 
+this in Playwright? Please write the code and mention any edge cases or common pitfalls.
+
+
+A: const [newPage] = await Promise.all([
+     context.waitForEvent('page'),
+     page.click('#open')
+   ]);
+   await newPage.waitForLoadState();
+
+
+
+   Full Example:
+   const [newPage] = await Promise.all([
+     context.waitForEvent('page'),
+     page.getByRole('button', { name: 'Print Preview' }).click()
+   ]);
+
+   await newPage.waitForLoadState();
+   await expect(newPage.getByText('Invoice #1234')).toBeVisible();
+   await newPage.close();
+   await expect(page).toHaveTitle(/Dashboard/);
+
+   Common pitfalls:
+   • Not using Promise.all() → may miss event
+   • Not waiting for page load → flaky assertions
+   • Using wrong context → use context.waitForEvent('page')
+   • Not closing tab → memory leaks
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q7: You're testing a multi-step workflow that spans three different pages (not tabs — 
+actual browser windows/pages). Step 1: Login on page A. Step 2: Click a link that opens 
+page B in a new window. Step 3: On page B, click a button that opens page C. Then you need 
+to go back to page A to verify a toast notification appeared. How would you manage navigation 
+between these three pages in Playwright? Show code for switching, verifying, and closing pages. 
+Also explain how this differs from handling multiple tabs.
+
+A: • Use browser context and keep page references
+
+   Example:
+   const pages = context.pages();
+   await pages[1].bringToFront();
+
+   Full Solution:
+   // Page A - Login
+   await page.goto('https://app.example.com/login');
+   await page.fill('#username', 'user');
+   await page.fill('#password', 'pass');
+   await page.click('#login');
+
+   // Open Page B
+   const [pageB] = await Promise.all([
+     context.waitForEvent('page'),
+     page.getByRole('link', { name: 'Open Details' }).click()
+   ]);
+   await pageB.waitForLoadState();
+
+   // Open Page C from Page B
+   const [pageC] = await Promise.all([
+     context.waitForEvent('page'),
+     pageB.getByRole('button', { name: 'Open Report' }).click()
+   ]);
+   await pageC.waitForLoadState();
+
+   // Close Page C and return to B
+   await pageC.close();
+   await pageB.bringToFront();
+
+   // Close Page B and return to A
+   await pageB.close();
+   await page.bringToFront();
+
+   // Verify toast on Page A
+   await expect(page.locator('.toast-message')).toBeVisible();
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q8: You're testing a file upload feature where the <input type="file"> element is hidden 
+from the UI. The developers used a custom button that triggers the file dialog, but the 
+actual file input has display: none or visibility: hidden. You cannot interact with the 
+visible button using standard Playwright methods because it's a complex React component. 
+How would you upload a file in this scenario? Show at least two different approaches, and 
+explain which one is more reliable and why.
+
+A: • Playwright bypasses UI restrictions
+
+   Option 1 - Direct setInputFiles (Most Reliable):
+   await page.locator('input[type="file"]').setInputFiles('file.pdf');
+
+   Option 2 - File Chooser Event:
+   const chooser = await page.waitForEvent('filechooser');
+   await page.click('#upload');
+   await chooser.setFiles('file.pdf');
+
+   ✅ Approach 1 is more reliable because:
+   • No dependency on UI behavior or event timing
+   • Works even if button is flaky
+   • Faster (no dialog handling)
+
+   💡 Interview One-liner:
+   "I prefer setting files directly on the hidden input using setInputFiles()
+    for stability, and use the filechooser event only when I need to simulate
+    the real user flow through the UI trigger."
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q9: You're testing a login flow with 50 different user accounts (admin, guest,
+viewer, editor, etc.). Writing 50 separate tests or hardcoding credentials
+inside each test is not maintainable. How would data parameterization help here?
+Explain the benefits and show a practical example using Playwright's test.each()
+or a data file.
+
+A: I would use data parameterization so the same login test runs with multiple
+user accounts using one reusable test flow. It improves maintainability, reduces
+duplicate code, and makes adding new users as simple as updating a data file.
+It also gives better coverage because we can validate different roles
+consistently.
+
+Example:
+----------------------------------------------------------------------------
+import { test, expect } from '@playwright/test';
+
+const users = [
+  { role: 'admin', username: 'admin1', password: 'pass1' },
+  { role: 'guest', username: 'guest1', password: 'pass2' },
+  { role: 'viewer', username: 'viewer1', password: 'pass3' }
+];
+
+users.forEach(user => {
+  test(`Login as ${user.role}`, async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('#username', user.username);
+    await page.fill('#password', user.password);
+    await page.click('#login');
+    await expect(page).toHaveURL(/dashboard/);
+  });
+});
+
+
+In real projects, I'd usually keep this data in JSON or CSV instead of
+hardcoding.
+
+Interviewer tip: They are checking whether you understand scalable test design,
+reusability, and data-driven testing in Playwright.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q10: Your team is deciding between JSON and CSV for storing test data. You have
+nested data structures (like an order with multiple line items) and also flat
+data (like 50 login credentials). Compare JSON vs CSV for: readability,
+maintainability, support for complex data types, and ease of use in Playwright.
+Which one would you choose for each scenario and why?
+
+A: I'd choose based on the data shape. For nested or relational data like orders
+with multiple line items, JSON is better because it supports objects, arrays,
+and hierarchy naturally. For flat bulk data like 1000 login credentials, CSV is
+better because its Excel-friendly, and easy for business users to
+maintain.
+
+JSON is stronger for readability in complex scenarios, maintainability of
+structured data, and direct import into Playwright as objects. CSV is simpler
+for tabular data, mass updates, and quick filtering or editing in Excel.
+
+So in this case, I'd use JSON for order/checkout scenarios and CSV for
+login/account datasets. In real frameworks, I often use both depending on the
+module.
+
+Interviewer tip: They want to know if you can choose the right tool
+pragmatically instead of forcing one format for every scenario.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
