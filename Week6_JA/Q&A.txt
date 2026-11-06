@@ -1,0 +1,503 @@
+
+Q1.Your team is executing 500 test cases in CI/CD. Some tests are under development, 
+some are failing due to application bugs, and some should run only in production. 
+How would you manage this using Playwright annotations?
+
+In a large CI/CD pipeline executing around 500 test cases, I would use Playwright annotations
+to control which tests run and how they are reported.
+
+test.skip() → For tests that are not applicable in the current environment or are temporarily disabled.
+test.fixme() → For tests blocked by known application defects or features under development.
+test.fail() → For tests that are expected to fail due to a known issue but should still be executed.
+test.slow() → For long-running tests that need additional timeout.
+test.only() → Mainly during local development for debugging; it should never be committed to the repository.
+ 
+Example
+
+import { test, expect } from '@playwright/test';
+
+test.fixme('Payment feature under development', async ({ page }) => {
+  // Test not executed
+});
+
+test('Production Audit Validation', async ({ page }) => {
+  test.skip(process.env.ENV !== 'PROD',
+    'Runs only in Production');
+
+  await page.goto('https://example.com');
+});
+
+test('Search functionality', async ({ page }) => {
+  test.fail(true, 'Known defect BUG-101');
+
+  await page.goto('https://example.com');
+  expect(await page.title()).toBe('Wrong Title');
+});
+
+test('Complete Order Flow', async ({ page }) => {
+  test.slow();
+
+  await page.goto('https://example.com');
+});
+
+
+Note: When to use fixme() instead of skip() for a known bug?
+
+skip() means we intentionally don't want to run the test.
+fixme() indicates the test is blocked by a known issue or unfinished feature and serves
+ as documentation for the team.
+
+------------------------------------------------------------------------------------------------
+
+Q2. If your framework contains Login, Search, Cart, and Checkout modules. 
+How will you organize test cases?
+
+I organize test cases module-wise using test.describe() and maintain separate spec files
+for Login, Search, Cart, and Checkout. I use hooks within each describe block for module-specific
+setup and teardown. This improves maintainability, readability, reporting, and selective execution 
+in CI/CD pipelines.
+
+This helps in:
+
+Grouping related test cases together
+Applying common hooks (beforeEach, afterEach)
+Improving report readability
+Easier maintenance and execution
+
+tests/
+ ├── login.spec.ts
+ ├── search.spec.ts
+ ├── cart.spec.ts
+ └── checkout.spec.ts
+
+| Module   | Example Test Cases                                  |
+| -------- | --------------------------------------------------- |
+| Login    | Valid Login, Invalid Login                          |
+| Search   | Search Product, Search No Results                   |
+| Cart     | Add Product, Remove Product                         |
+| Checkout | Place Order, Payment Validation, Address Validation |
+
+ex:
+import { test, expect } from '@playwright/test';
+
+test.describe('Login Module', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://example.com/login');
+  });
+
+  test('Valid Login', async ({ page }) => {
+    // Test Steps
+  });
+
+  test('Invalid Login', async ({ page }) => {
+    // Test Steps
+  });
+
+});
+
+test.describe('Cart Module', () => {
+
+  test('Add Product to Cart', async ({ page }) => {
+    // Test Steps
+  });
+
+  test('Remove Product from Cart', async ({ page }) => {
+    // Test Steps
+  });
+
+});
+
+import { test, expect } from '@playwright/test';
+
+test.describe('Search Module', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://example.com');
+  });
+
+  test('Search Existing Product', async ({ page }) => {
+    // Search for iPhone
+  });
+
+  test('Search Non-Existing Product', async ({ page }) => {
+    // Search for invalid product
+  });
+
+});
+
+test.describe('Checkout Module', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://example.com');
+  });
+
+  test('Successful Checkout', async ({ page }) => {
+    // Complete checkout process
+  });
+
+  test('Checkout Without Address', async ({ page }) => {
+    // Verify validation message
+  });
+
+});
+
+Note:
+
+1. Why use test.describe()?
+
+Logical grouping of tests
+Common setup and teardown
+Better reporting
+Easier filtering and execution
+
+2. Can we have nested describe blocks?
+
+Nested describe is used when we need multiple levels of grouping. For example, in an e-commerce 
+application, I can first group tests by user type (Guest User and Registered User), and inside 
+each group I can further organize tests into Search, Cart, and Checkout modules. This makes the 
+test structure cleaner and reports easier to understand.
+
+test.describe('E-Commerce', () => {
+
+  test.describe('Cart Module', () => {
+
+    test.describe('Guest User', () => {
+      // Tests
+    });
+
+    test.describe('Registered User', () => {
+      // Tests
+    });
+
+  });
+
+});
+
+3. Can we run only a specific module?
+
+Yes, Only Cart module tests can be executed.
+
+test.describe.only('Cart Module', () => {
+
+});
+
+---------------------------------------------------------------------------------
+
+Q3. What is a constructor in a class?
+   Why is it commonly used in Page Object Model classes?
+
+   A constructor is a special method in a class that is automatically executed 
+   when an object of that class is created.
+
+   Example
+   class LoginPage {
+
+
+   constructor(page:Page){
+   this.page = page
+    }
+
+    }
+
+
+   They are used in POM to:
+
+   Initialize the Playwright page object
+   Initialize locators
+   Setup dependencies required for the page
+  
+   Example:
+
+   constructor(page){
+   this.page = page
+   this.username = page.locator('#username')
+   }
+
+so, Each Page Object receives the same browser page instance.
+
+-----------------------------------------------------------------------------------
+
+Q4: "You're building a Playwright automation framework from scratch. Your tech
+   lead asks you to explain how the four main OOP principles (Encapsulation,
+   Inheritance, Polymorphism, Abstraction) apply specifically to your framework
+   design. Give a concrete example of each principle using Playwright code."
+
+A: ENCAPSULATION:
+   Helps me keep locators and page actions inside Page Object classes instead of
+   exposing them directly to tests. That improves maintainability because tests
+   only call methods like login() instead of interacting with raw locators.
+
+   Example:
+   ----------------------------------------------------------------------------
+   class LoginPage {
+     private username = '#username';
+
+     async login(user: string) {
+       await this.page.locator(this.username).fill(user);
+     }
+   }
+   ----------------------------------------------------------------------------
+
+   INHERITANCE:
+   Helps reuse common functionality through a BasePage, like click, wait, or
+   navigation methods, which child pages can inherit.
+
+   Example:
+   ----------------------------------------------------------------------------
+   class BasePage {
+     async click(locator: string) {
+       await this.page.locator(locator).click();
+     }
+   }
+
+   class LoginPage extends BasePage {}
+   ----------------------------------------------------------------------------
+
+   POLYMORPHISM:
+   Gives flexibility—for example, the same login() method can support
+   username/password login or token-based login with different implementations.
+
+   Example:
+   ----------------------------------------------------------------------------
+   login(user: string, pass: string)
+   login(token: string)
+   ----------------------------------------------------------------------------
+
+   ABSTRACTION:
+   Hides implementation complexity from tests. Instead of tests knowing locator
+   details, they simply call business-level methods.
+
+   Example:
+   ----------------------------------------------------------------------------
+   await loginPage.login('admin', 'pass');
+   ----------------------------------------------------------------------------
+
+   This keeps tests clean, reusable, and easier to maintain in large frameworks.
+
+   Interviewer tip: They're checking whether you understand OOP conceptually and
+   can apply it practically in real Playwright framework architecture.
+
+
+================================================================================
+QUESTION : Encapsulation Violation in POM
+================================================================================
+
+Q5: "In your Page Object Model, you have locators like #login-btn and #username.
+   A junior developer on your team is accessing these locators directly from
+   test scripts instead of going through page methods. Why is this a violation
+   of Encapsulation? How would you enforce proper encapsulation in your POM
+   classes?"
+
+A: Accessing locators directly from test scripts breaks Encapsulation because
+   tests become tightly coupled to internal page structure. If a locator
+   changes, multiple test files may break instead of only the Page Object.
+   The purpose of POM is to hide implementation details and expose only business
+   actions like login() or submitForm().
+
+   To enforce proper encapsulation:
+   • Make locators private (private username = '#username')
+   • Only expose public methods like login(), submitForm(), etc.
+   • Use code review guidelines to prevent direct locator access
+   • Implement linting rules to catch violations
+
+
+================================================================================
+QUESTION : Inheritance to Avoid Code Duplication
+================================================================================
+
+Q6: "You have three different page objects: LoginPage, DashboardPage, and
+   ProfilePage. All of them need the same waitForPageLoad() method and a
+   reference to the page object. How would you use Inheritance to avoid
+   duplicating this code across all three classes?"
+ 
+A: I would create a reusable BasePage class containing common functionality like
+   the Playwright page reference and shared methods such as waitForPageLoad().
+   Then all page classes would extend that base class instead of duplicating the
+   same code.
+
+   Example:
+   ----------------------------------------------------------------------------
+   import { Page } from '@playwright/test';
+
+   class BasePage {
+     constructor(protected page: Page) {}
+
+     async waitForPageLoad() {
+       await this.page.waitForLoadState('networkidle');
+     }
+   }
+
+   class LoginPage extends BasePage {
+     async login(user: string, pass: string) {
+       await this.page.fill('#username', user);
+       await this.page.fill('#password', pass);
+       await this.page.click('#login');
+     }
+   }
+
+   class DashboardPage extends BasePage {
+     async openReports() {
+       await this.page.click('#reports');
+     }
+   }
+
+   class ProfilePage extends BasePage {
+     async updateProfile() {
+       await this.page.click('#save-profile');
+     }
+   }
+   ----------------------------------------------------------------------------
+
+   This reduces duplication, improves maintainability, and keeps shared behavior
+   centralized.
+
+   Interviewer tip: They're checking whether you can design scalable framework
+   architecture using inheritance and reusable base classes.
+
+
+================================================================================
+QUESTION : Polymorphism with Payment Gateways
+================================================================================
+
+Q7: "You have two different payment gateways: Stripe and PayPal. Both need a
+   processPayment(amount) method, but the implementation is completely
+   different. How would you use Polymorphism to write a single test that works
+   with any payment gateway without changing the test logic?"
+
+A: I would create a common interface or parent class with a processPayment()
+   method, and then implement it differently for Stripe and PayPal. The test
+   would work against the common contract instead of knowing gateway-specific
+   details. That's polymorphism—the same method behaving differently based on
+   the object passed.
+
+   Example:
+   ----------------------------------------------------------------------------
+   interface PaymentGateway {
+     processPayment(amount: number): Promise<void>;
+   }
+
+   class StripePayment implements PaymentGateway {
+     async processPayment(amount: number) {
+       console.log(`Processing ${amount} via Stripe`);
+     }
+   }
+
+   class PayPalPayment implements PaymentGateway {
+     async processPayment(amount: number) {
+       console.log(`Processing ${amount} via PayPal`);
+     }
+   }
+   ----------------------------------------------------------------------------
+
+   Single reusable test logic:
+   ----------------------------------------------------------------------------
+   async function executePayment(gateway: PaymentGateway) {
+     await gateway.processPayment(500);
+   }
+
+   await executePayment(new StripePayment());
+   await executePayment(new PayPalPayment());
+
+
+
+   async function main(){
+
+   await executePayment(new StripePayment());
+   await executePayment(new PayPalPayment());
+   }
+   main()
+   ----------------------------------------------------------------------------
+
+   This keeps the test scalable because adding a new gateway like RazorPay later
+   doesn't require changing the core test flow.
+
+   Interviewer tip: They're checking whether you understand practical
+   polymorphism and how it improves framework extensibility and maintainability.
+
+
+
+================================================================================
+QUESTION : Abstraction with login() Method
+================================================================================
+
+Q8: "A test script using your POM currently does:
+   await loginPage.enterUsername('user');
+   await loginPage.enterPassword('pass');
+   await loginPage.clickLoginButton();
+
+   How would you use Abstraction to hide these three steps behind a single
+   login() method? Why does this simplify maintenance?"
+
+A: I would create a higher-level login() method inside the LoginPage class that
+   internally handles username entry, password entry, and clicking the login
+   button. The test only calls one business-level action instead of knowing
+   implementation details.
+
+   Example:
+   ----------------------------------------------------------------------------
+   class LoginPage {
+     private usernameInput = '#username';
+     private passwordInput = '#password';
+     private loginButton = '#login';
+
+     constructor(private page: Page) {}
+
+     async enterUsername(user: string) {
+       await this.page.fill(this.usernameInput, user);
+     }
+
+     async enterPassword(pass: string) {
+       await this.page.fill(this.passwordInput, pass);
+     }
+
+     async clickLoginButton() {
+       await this.page.click(this.loginButton);
+     }
+
+     // Abstracted business method
+     async login(user: string, pass: string) {
+       await this.enterUsername(user);
+       await this.enterPassword(pass);
+       await this.clickLoginButton();
+       await this.page.waitForURL('**/dashboard');
+     }
+   }
+   ----------------------------------------------------------------------------
+
+   Then the test becomes:
+   ----------------------------------------------------------------------------
+   await loginPage.login('user', 'pass');
+   ----------------------------------------------------------------------------
+
+   Why this simplifies maintenance:
+
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │ Before Abstraction                 │ After Abstraction                  │
+   ├───────────────────────────────────┼─────────────────────────────────────┤
+   │ Tests know 3 implementation steps │ Tests know 1 business action       │
+   │ Every test repeats the 3 steps    │ One method called everywhere       │
+   │ Locator change = update N tests   │ Locator change = update 1 method   │
+   │ Adding OTP = modify all tests     │ Adding OTP = modify 1 method only  │
+   └─────────────────────────────────────────────────────────────────────────┘
+
+   If the login flow changes—like adding OTP or changing locators—I only update
+   the login() method in one place instead of modifying every test.
+
+   Interviewer tip: They're checking whether you understand abstraction and how
+   business-level methods make frameworks cleaner and easier to maintain.
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q9: What is POM? explain 
+
+POM (Page Object Model) is a design pattern used in test automation where each application page is represented by a separate class.
+
+It keeps locators and page-specific actions together, making tests more reusable, readable,scalable and maintainable.
+
+Example: LoginPage contains username, password, login-button locators and a login() method.
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+

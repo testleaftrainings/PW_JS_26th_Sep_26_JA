@@ -1,0 +1,126 @@
+
+Q1. Your team is executing 500 test cases in CI/CD. Some tests are under development, 
+some are failing due to application bugs, and some should run only in production. 
+How would you manage this using Playwright annotations?
+
+Q2. If your framework contains Login, Search, Cart, and Checkout modules.
+ How will you organize test cases?
+
+
+Q3. What is a constructor in a class?
+    Why is it commonly used in Page Object Model classes?
+
+
+Q4: "You're building a Playwright automation framework from scratch. Your tech
+   lead asks you to explain how the four main OOP principles (Encapsulation,
+   Inheritance, Polymorphism, Abstraction) apply specifically to your framework
+   design. Give a concrete example of each principle using Playwright code."
+
+
+   Encapsulation:
+   Inheritance:
+   Polymrphism:
+   Abstraction:
+
+
+Q5: "In your Page Object Model, you have locators like #login-btn and #username.
+   A junior developer on your team is accessing these locators directly from
+   test scripts instead of going through page methods. Why is this a violation
+   of Encapsulation? How would you enforce proper encapsulation in your POM
+   classes?"
+
+
+Q6: "You have three different page objects: LoginPage, DashboardPage, and
+   ProfilePage. All of them need the same waitForPageLoad() method and a
+   reference to the page object. How would you use Inheritance to avoid
+   duplicating this code across all three classes?"
+
+
+
+Q7: "You have two different payment gateways: Stripe and PayPal. Both need a
+   processPayment(amount) method, but the implementation is completely
+   different. How would you use Polymorphism to write a single test that works
+   with any payment gateway without changing the test logic?"
+
+
+   interface payment{
+
+    processPayment(amount:number)
+   }
+
+
+   class stripepayment implements payment{
+    async processPayment(amount:number){
+    console.log(`processing ${amount} via stripe`)
+    }
+   }
+
+   class paypalpayment implements payment{
+   async processPayment(amount:number){
+      console.log(`processing ${amount} via paypal`)  
+    }
+   }
+
+
+   async function exepayment(gway:payment){
+   gway.processPayment(500)
+
+   }
+
+   async function mainexe(){
+   await exepayment(new stripepayment())
+   await exepayment(new paypalpayment())
+
+   }
+   mainexe()
+
+Q8: "A test script using your POM currently does:
+   await loginPage.enterUsername('user');
+   await loginPage.enterPassword('pass');
+   await loginPage.clickLoginButton();
+
+   How would you use Abstraction to hide these three steps behind a single
+   login() method? Why does this simplify maintenance?"
+
+class LoginPage{
+
+    private usernameinput="#username"
+    private passwordinput="#password"
+    private loginButton="#Login"
+
+    constructor(page:Page){}
+
+async enterusername(user:string){
+await this.page.fill(this.usernameinput,user)
+}
+
+async enterPassword(pass:string){
+await this.page.fill(this.passwordinput,pass)
+}
+
+async clickLoginButton(){
+await this.page.click(this.loginButton)
+}
+
+//Abstraction
+async login(username:string, password:string){
+    await this.enterusername(user)
+    await this.enterPassword(pass)
+    await this.loginButton()
+}
+
+}
+
+  //test
+  await loginPage.login('user','pass')
+
+
+
+Q9: What is POM ? explain ?
+
+
+Week 6: JA feedback form
+
+https://forms.cloud.microsoft/r/SfF58EwJYX
+
+https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?subpage=design&FormId=eOdNgpfGe0qp5fd14FyRQ0OoIk3-aJVKpiMuJXU1QmlUQ05ESVVGQTZWVkVJTTMxQkFLS04yTFVTNi4u&Token=ddda9092f5124b118a2c631447f2dcca
